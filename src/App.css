@@ -1,0 +1,83 @@
+/* Container to center the form on the screen */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #000; /* Matches your dark theme */
+}
+
+/* The actual login card */
+.auth-form {
+  background: #111;
+  padding: 40px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  width: 100%;
+  max-width: 350px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+}
+
+.auth-form h2 {
+  color: white;
+  text-align: center;
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* Input styling */
+.auth-form input {
+  padding: 12px;
+  background: #222;
+  border: 1px solid #444;
+  color: white;
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.auth-form input:focus {
+  border-color: #fff; /* White glow on focus */
+}
+
+/* Button styling */
+.auth-form button {
+  padding: 12px;
+  background: #fff;
+  color: #000;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: opacity 0.3s;
+}
+
+.auth-form button:hover {
+  opacity: 0.8;
+}
+
+.register-link{
+    color: #fff;
+    text-align: center;
+    display: block;
+    margin-top: 10px;
+    font-size: 14px;
+}
+/* Ensure the auth-form handles more fields gracefully */
+.auth-form {
+  min-height: 400px; /* Gives more room for the extra field */
+}
+
+/* Style for the "error" message inside the form */
+.auth-form p {
+  background: rgba(255, 77, 77, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #ff4d4d;
+  text-align: center;
+}
