@@ -18,13 +18,15 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
-import {Link ,useLocation} from "react-router-dom";
+import LogoutIcon from '@mui/icons-material/Logout';
+import { Link, useLocation, useNavigate } from "react-router-dom";
+
 const drawerWidth = 240;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
   ({ theme }) => ({
     flexGrow: 1,
-    padding: theme.spacing(3),
+    padding: theme.spacing(0),
     transition: theme.transitions.create('margin', {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.leavingScreen,
@@ -71,42 +73,38 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
   padding: theme.spacing(0, 1),
-  // necessary for content to be below app bar
   ...theme.mixins.toolbar,
   justifyContent: 'flex-end',
 }));
 
-export default function Navbar(props) {
-
-  const location = useLocation()
-  const path = location.pathname
+export default function Navbar({ onLogout, content }) {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const path = location.pathname;
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-  const { content } = props;
-  const handleDrawerOpen = () => {
-    setOpen(true);
-  };
 
-  const handleDrawerClose = () => {
-    setOpen(false);
+  const handleDrawerOpen = () => setOpen(true);
+  const handleDrawerClose = () => setOpen(false);
+
+  const handleLogout = () => {
+    if (onLogout) onLogout();
+    navigate("/");
   };
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box sx={{ display: 'flex', backgroundColor: '#1a1a2e',  // 👈 change this color
+            color: 'white', }} >
       <CssBaseline />
       <AppBar position="fixed" open={open}>
-        <Toolbar>
+        <Toolbar sx={{backgroundColor: '#111',  
+            color: 'white',}}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             onClick={handleDrawerOpen}
             edge="start"
-            sx={[
-              {
-                mr: 2,
-              },
-              open && { display: 'none' },
-            ]}
+            sx={[{ mr: 2 }, open && { display: 'none' }] }
           >
             <MenuIcon />
           </IconButton>
@@ -115,6 +113,7 @@ export default function Navbar(props) {
           </Typography>
         </Toolbar>
       </AppBar>
+
       <Drawer
         sx={{
           width: drawerWidth,
@@ -122,43 +121,51 @@ export default function Navbar(props) {
           '& .MuiDrawer-paper': {
             width: drawerWidth,
             boxSizing: 'border-box',
+            backgroundColor: '#111',  
+            color: 'white',
           },
-          
         }}
         variant="persistent"
         anchor="left"
-
         open={open}
       >
         <DrawerHeader>
-          <IconButton onClick={handleDrawerClose}>
+          <IconButton onClick={handleDrawerClose} sx={{ color: 'white' }}>
             {theme.direction === 'ltr' ? <ChevronLeftIcon /> : <ChevronRightIcon />}
           </IconButton>
         </DrawerHeader>
         <Divider />
+
         <List>
-          
-            <ListItem key={1} disablePadding>
-              <ListItemButton component={Link} to="/home" selected={path === "/home"}>
-                <ListItemIcon>
-                  <HomeIcon />
-                </ListItemIcon>
-                <ListItemText primary="Home" />
-              </ListItemButton>
+          {/* Fixed: unique keys */}
+          <ListItem key="home" disablePadding>
+            <ListItemButton component={Link} to="/home" selected={path === "/home"}>
+              <ListItemIcon sx={{ color: 'white' }}><HomeIcon /></ListItemIcon>
+              <ListItemText primary="Home" />
+            </ListItemButton>
+          </ListItem>
 
-            </ListItem> 
-            <ListItem key={1} disablePadding>
-              <ListItemButton component={Link} to="/about" selected={path === "/about"}>
-                <ListItemIcon>
-                  <InfoIcon />
-                </ListItemIcon>
-                <ListItemText primary="About" />
-              </ListItemButton>
-            </ListItem> 
-
+          <ListItem key="about" disablePadding>
+            <ListItemButton component={Link} to="/about" selected={path === "/about"}>
+              <ListItemIcon sx={{ color: 'white' }}><InfoIcon /></ListItemIcon>
+              <ListItemText primary="About" />
+            </ListItemButton>
+          </ListItem>
         </List>
-        
+
+        <Divider />
+
+        {/* Logout button pushed to bottom */}
+        <List style={{ marginTop: 'auto' ,}}>
+          <ListItem key="logout" disablePadding>
+            <ListItemButton onClick={handleLogout}>
+              <ListItemIcon sx={{ color: 'white' }}><LogoutIcon /></ListItemIcon>
+              <ListItemText primary="Logout" />
+            </ListItemButton>
+          </ListItem>
+        </List>
       </Drawer>
+
       <Main open={open}>
         <DrawerHeader />
         {content}

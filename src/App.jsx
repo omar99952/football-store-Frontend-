@@ -5,38 +5,37 @@ import Login from "./components/Login";
 import Home from "./components/Home";
 import About from "./components/About";
 import Navbar from "./components/Navbar";
+import ProductDetail from "./components/Productdetail";
+import Checkout from "./components/Checkout";
 import "./App.css";
 
 export default function App() {
-  // 1. Manage token state
   const [token, setToken] = useState(localStorage.getItem("token") || null);
-  
-  // 2. This now works because App is inside the Router in main.jsx
   const location = useLocation();
-  
-  // Hide Navbar on Login/Register
+
   const isAuthPage = location.pathname === "/" || location.pathname === "/register";
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+  };
 
   return (
     <>
-      {/* Only show Navbar if we aren't on an auth page and user is logged in */}
-      {!isAuthPage && token && <Navbar />}
+      {!isAuthPage && token && <Navbar onLogout={handleLogout} />}
 
       <Routes>
         {/* Auth Routes */}
         <Route path="/" element={<Login setToken={setToken} />} />
-        <Route path="/register" element={<Register setToken={setToken} />} /> 
+        <Route path="/register" element={<Register setToken={setToken} />} />
+
         {/* Protected Routes */}
-        <Route 
-          path="/home" 
-          element={token ? <Home /> : <Navigate to="/" />} 
-        />
-        <Route 
-          path="/about" 
-          element={token ? <About /> : <Navigate to="/" />} 
-        />
-        
-        {/* Fallback: if route doesn't exist, go to Login or Home */}
+        <Route path="/home" element={token ? <Home /> : <Navigate to="/" />} />
+        <Route path="/about" element={token ? <About /> : <Navigate to="/" />} />
+        <Route path="/product/:id" element={token ? <ProductDetail /> : <Navigate to="/" />} /> 
+        <Route path="/checkout" element={token ? <Checkout /> : <Navigate to="/" />} /> 
+
+        {/* Fallback */}
         <Route path="*" element={<Navigate to={token ? "/home" : "/"} />} />
       </Routes>
     </>

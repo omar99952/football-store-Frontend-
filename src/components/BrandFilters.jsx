@@ -1,23 +1,38 @@
 export default function BrandFilters({ activeBrand, setActiveBrand }) {
-  const brands = ['Nike', 'Adidas', 'Puma', 'New Balance'];
+  const brands = ['All', 'Nike', 'Adidas', 'Puma', 'New Balance'];
 
   return (
-    <div className="brand-filters">
-      {brands.map((brand) => (
-        <button 
-          key={brand} 
-          onClick={() => setActiveBrand(brand)}
-          style={{ background: activeBrand === brand ? 'white' : 'black', color: activeBrand === brand ? 'black' : 'white' }}
-        >
-          {brand}
-        </button>
-      ))}
-      <button 
-        onClick={() => setActiveBrand('All')}
-        style={{ background: activeBrand === 'All' ? 'white' : 'black', color: activeBrand === 'All' ? 'black' : 'white' }}
-      >
-        All
-      </button>
+    <div style={{
+      display: 'flex',
+      gap: '10px',
+      padding: '20px 20px 0',
+      flexWrap: 'wrap',
+    }}>
+      {brands.map((brand) => {
+        const isActive = activeBrand === brand;
+        return (
+          <button
+            key={brand}
+            onClick={() => setActiveBrand(brand)}
+            style={{
+              padding: '8px 20px',
+              background: isActive ? '#fff' : 'transparent',
+              color: isActive ? '#000' : '#3d3c3c',
+              border: '1px solid',
+              borderColor: isActive ? '#fff' : '#444',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontWeight: isActive ? 'bold' : 'normal',
+              fontSize: '13px',
+              transition: 'all 0.2s',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}
+          >
+            {brand}
+          </button>
+        );
+      })}
     </div>
   );
 }

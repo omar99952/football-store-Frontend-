@@ -9,7 +9,7 @@ export default function Hero() {
         backgroundImage: `url(${adidasF50})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        width: '100vw',
+        width: '100%',
         height: '100vh',
         display: 'flex',
         alignItems: 'center',
@@ -23,8 +23,8 @@ export default function Hero() {
         transition={{ duration: 1 }}
         className="hero-content"
       >
-        <h1>Speed. Power. Precision.</h1>
-        <p>Discover the new Adidas F50 collection</p>
+        <h1 style={{color: 'white'}}>Speed. Power. Precision.</h1>
+        <p style={{color: 'white' }}>Discover the new Adidas F50 collection</p>
       </motion.div>
     </section>
   );
