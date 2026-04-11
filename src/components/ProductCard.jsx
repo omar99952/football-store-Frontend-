@@ -1,9 +1,16 @@
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import {useState, useEffect} from 'react' 
+// 
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'; // Empty heart
+import FavoriteIcon from '@mui/icons-material/Favorite'; // Filled heart
+import { IconButton } from '@mui/material'; // Optional: makes it a clickable button
+//
 
-export default function ProductCard({ product, onAddToCart }) {
+export default function ProductCard({ product, onAddToCart,addToFavList,favList,fromFav }) {
   const navigate = useNavigate();
-
+  
+  const isProductFavorite = favList== undefined ? false : favList.includes(product.id);
   return (
     <motion.div onClick={() => navigate(`/product/${product.id}`)}
       whileHover={{ scale: 1.05 }}
@@ -29,6 +36,13 @@ export default function ProductCard({ product, onAddToCart }) {
       <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 500 }}>{product.name}</h3>
       <p style={{ margin: 0, fontSize: '14px', color: '#aaa' }}>{product.brand}</p>
       <p style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>${product.price}</p>
+      
+      <FavoriteIcon sx={{ alignSelf: 'flex-end',color: isProductFavorite && 'red' }}
+       onClick={(e) => {
+        e.stopPropagation()   // 👈 prevents card click from firing
+        addToFavList(product.id)
+
+    }}/>
 
       <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
         {/* Fixed: was onAddToCart without passing product */}
@@ -66,6 +80,7 @@ export default function ProductCard({ product, onAddToCart }) {
         >
           Details
         </button>
+
       </div>
     </motion.div>
   );

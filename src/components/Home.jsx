@@ -3,30 +3,43 @@ import Hero from "./Hero"
 import Cart from "./Cart"
 import ProductCard from "./ProductCard"
 import BrandFilters from "./BrandFilters"
-import AxiosInstance from "./AxiosInstance"
 
-function Home() {
-    const [products, setProducts] = useState([])
+
+function Home({products,onAddToCart}) {
     const [cartItems, setCartItems] = useState([])
     const [activeBrand, setActiveBrand] = useState('All')
+    const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("football_cart");
+        return savedCart ? JSON.parse(savedCart) : [];
+            });
+    const [favList,setFavList] = useState(() =>{
+        const savedData = localStorage.getItem('fav_list')
+        return savedData ? JSON.parse(savedData) : []
+    }
+        )
+      
+    function addToFavList(id){
+        if (!favList.includes(id))
+            setFavList([...favList,id])
+        else 
+            setFavList(favList.filter( item => item!== id))
+
+    }
+
 
     useEffect(() => {
-        AxiosInstance.get('products/')
-            .then(res => setProducts(res.data))
-            .catch(err => console.log(err))
-    }, [])
+        localStorage.setItem('fav_list', JSON.stringify(favList) )
+        console.log("The list has updated and saved:", favList);
 
-    const addToCart = (product) => {
-        const existing = cartItems.findIndex(item => item.id === product.id)
-        if (existing >= 0) {
-            // product already in cart — increase quantity
-            const updated = [...cartItems]
-            updated[existing].quantity += 1
-            setCartItems(updated)
-        } else {
-            setCartItems([...cartItems, { ...product, quantity: 1 }])
-        }
-    }
+        }, [favList]);
+        
+    useEffect(() => {
+    localStorage.setItem("football_cart", JSON.stringify(cart));
+  }, [cart]);    
+
+    
+
+    
 
     const changeQuantity = (index, amount) => {
         const updated = [...cartItems]
@@ -53,7 +66,7 @@ function Home() {
             <BrandFilters activeBrand={activeBrand} setActiveBrand={setActiveBrand} />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '20px' }}>
                 {filteredProducts.map(product => (
-                    <ProductCard key={product.id} product={product} onAddToCart={addToCart} />
+                    <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} addToFavList={addToFavList} favList={favList}/>
                 ))}
             </div>
             <Cart cartItems={cartItems} onChangeQuantity={changeQuantity} onRemove={removeItem} />

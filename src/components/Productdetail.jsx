@@ -49,13 +49,14 @@ export default function ProductDetail() {
           border: '1px solid #444',
           color: '#fff',
           borderRadius: '4px',
-          padding: '8px 16px',
+          padding: '16px',
           cursor: 'pointer',
           marginBottom: '32px',
           fontSize: '13px',
+          position: 'fixed'
         }}
       >
-        ← Back
+        <IoArrowBack />
       </button>
 
       <motion.div

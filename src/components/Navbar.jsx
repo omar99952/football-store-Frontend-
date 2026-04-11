@@ -20,6 +20,7 @@ import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import FavoriteIcon from '@mui/icons-material/Favorite'; // 👈 Add this
 
 const drawerWidth = 240;
 
@@ -142,6 +143,13 @@ export default function Navbar({ onLogout, content }) {
             <ListItemButton component={Link} to="/home" selected={path === "/home"}>
               <ListItemIcon sx={{ color: 'white' }}><HomeIcon /></ListItemIcon>
               <ListItemText primary="Home" />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem key="fav" disablePadding>
+            <ListItemButton component={Link} to="/favourites" selected={path === "/favourites"}>
+              <ListItemIcon sx={{ color: 'white' }}><FavoriteIcon /></ListItemIcon>
+              <ListItemText primary="Favourites" />
             </ListItemButton>
           </ListItem>
 
