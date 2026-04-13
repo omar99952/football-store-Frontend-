@@ -20,7 +20,9 @@ import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import FavoriteIcon from '@mui/icons-material/Favorite'; // 👈 Add this
+import FavoriteIcon from '@mui/icons-material/Favorite'; // 
+import Badge from '@mui/material/Badge';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 
 const drawerWidth = 240;
 
@@ -78,7 +80,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
   justifyContent: 'flex-end',
 }));
 
-export default function Navbar({ onLogout, content }) {
+export default function Navbar({ onLogout, content,cartCount }) {
   const location = useLocation();
   const navigate = useNavigate();
   const path = location.pathname;
@@ -109,10 +111,16 @@ export default function Navbar({ onLogout, content }) {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div">
+          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Football Store
           </Typography>
+          <IconButton color="inherit" onClick={() => navigate('/cart')}>
+            <Badge badgeContent={cartCount} color="error">
+                <ShoppingCartIcon />
+            </Badge>
+          </IconButton>
         </Toolbar>
+        
       </AppBar>
 
       <Drawer

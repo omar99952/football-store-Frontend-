@@ -5,12 +5,16 @@ import {useState, useEffect} from 'react'
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'; // Empty heart
 import FavoriteIcon from '@mui/icons-material/Favorite'; // Filled heart
 import { IconButton } from '@mui/material'; // Optional: makes it a clickable button
+import QuantityControls from "./QuantityControls";
 //
 
-export default function ProductCard({ product, onAddToCart,addToFavList,favList,fromFav }) {
+export default function ProductCard({ product,addToFavList,favList,fromFav,handleCartUpdate,cartItems }) {
   const navigate = useNavigate();
-  
+  const [isAddedToCart,setAddedToCart] = useState(false);
+  const itemInCart = cartItems.hasOwnProperty(product.id.toString());
+  const cartEntry = cartItems[product.id.toString()];
   const isProductFavorite = favList== undefined ? false : favList.includes(product.id);
+  console.log(`isadded to cart for ${product.name}:`, itemInCart);
   return (
     <motion.div onClick={() => navigate(`/product/${product.id}`)}
       whileHover={{ scale: 1.05 }}
@@ -36,20 +40,31 @@ export default function ProductCard({ product, onAddToCart,addToFavList,favList,
       <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 500 }}>{product.name}</h3>
       <p style={{ margin: 0, fontSize: '14px', color: '#aaa' }}>{product.brand}</p>
       <p style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>${product.price}</p>
-      
-      <FavoriteIcon sx={{ alignSelf: 'flex-end',color: isProductFavorite && 'red' }}
-       onClick={(e) => {
-        e.stopPropagation()   // 👈 prevents card click from firing
-        addToFavList(product.id)
+     { fromFav ? null :
 
-    }}/>
+       <FavoriteIcon sx={{ alignSelf: 'flex-end',color: isProductFavorite && 'red' }}
+       onClick={(e) => {
+         e.stopPropagation()   // 👈 prevents card click from firing
+         addToFavList(product.id)
+         
+        }}/>
+      } 
 
       <div style={{ display: 'flex', gap: '8px', marginTop: 'auto' }}>
         {/* Fixed: was onAddToCart without passing product */}
-        <button
+        
+        {console.log("isadded to cart",isAddedToCart)}
+{itemInCart ? (
+      <QuantityControls 
+        quantity={cartEntry.quantity} 
+        onAdd={() => handleCartUpdate(product, 1)} 
+        onRemove={() => handleCartUpdate(product, -1)} 
+      />
+    ) : <button
           onClick={(e) => {
         e.stopPropagation()   // 👈 prevents card click from firing
-        onAddToCart(product)
+        handleCartUpdate(product,1)
+        
     }}
           style={{
             flex: 1,
@@ -64,7 +79,7 @@ export default function ProductCard({ product, onAddToCart,addToFavList,favList,
           }}
         >
           Add to Cart
-        </button>
+        </button>}
         <button
           onClick={() => navigate(`/product/${product.id}`)}
           style={{

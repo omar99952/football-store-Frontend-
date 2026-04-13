@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom"; // 1. Import this
+import { useNavigate } from "react-router-dom"; 
 import '../App.css';
 
 export default function Register() { // Removed setToken if you want them to log in manually
@@ -27,7 +27,7 @@ export default function Register() { // Removed setToken if you want them to log
       });
       
       // 3. Redirect to the Login page (which is at path "/")
-      alert("Registration successful! Please login.");
+      // alert("Registration successful! Please login.");
       navigate("/"); 
       
     } catch (err) {

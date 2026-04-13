@@ -10,15 +10,16 @@ import ProductDetail from "./components/Productdetail";
 import Checkout from "./components/Checkout";
 import Favourites from "./components/Favourites";
 import AxiosInstance from "./components/AxiosInstance"
+import Cart from "./components/Cart"
 import "./App.css";
 
 export default function App() {
   const [products, setProducts] = useState([])
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const location = useLocation();
-  const [cart, setCart] = useState(() => {
+  const [cartItems, setCartItems] = useState(() => {
   const savedCart = localStorage.getItem("football_cart");
-    return savedCart ? JSON.parse(savedCart) : [];
+    return savedCart ? JSON.parse(savedCart) : {};
   });
   const isAuthPage = location.pathname === "/" || location.pathname === "/register";
 
@@ -27,44 +28,63 @@ export default function App() {
     setToken(null);
   };
 
-  const addToCart = (product) => {
-        const existing = cartItems.findIndex(item => item.id === product.id)
-        if (existing >= 0) {
-            // product already in cart — increase quantity
-            const updated = [...cartItems]
-            updated[existing].quantity += 1
-            setCartItems(updated)
-        } else {
-            setCartItems([...cartItems, { ...product, quantity: 1 }])
-        }
-    }
+    const handleCartUpdate = (product, delta) => {
+      if (!product || product.id === undefined) {
+    console.error("Error: Product ID is missing!", product);
+    return;
+  }
+      
+      
+      setCartItems((prev) => {
+      const productId = product.id.toString();
+      const existingItem = prev[productId];
 
+      // 1. If removing the last item
+      if (delta === -1 && existingItem?.quantity === 1) {
+        const { [productId]: removed, ...rest } = prev; // Cleanly remove the key
+        return rest;
+      }
 
-    const changeQuantity = (index, amount) => {
-            const updated = [...cartItems]
-            updated[index].quantity += amount
-            if (updated[index].quantity <= 0) {
-                updated.splice(index, 1)  // remove if quantity reaches 0
-            }
-            setCartItems(updated)
-        }
+      // 2. Update existing or add new
+      return {
+        ...prev,
+        [productId]: {
+          ...product, // Spreads name, image, price, etc.
+          quantity: (existingItem?.quantity || 0) + delta,
+        },
+      };
+    });
+  };
     
-        const removeItem = (index) => {
-            const updated = [...cartItems]
-            updated.splice(index, 1)
-            setCartItems(updated)
-        }
+    const removeItem = (productId) => {
+  setCartItems((prev) => {
+    // 1. Create a shallow copy of the cart
+    const newCart = { ...prev };
+    
+    // 2. Remove the specific product key
+    delete newCart[productId];
+    
+    // 3. Return the updated dictionary
+    return newCart;
+  });
+};
 
       useEffect(() => {
         AxiosInstance.get('products/')
             .then(res => setProducts(res.data))
             .catch(err => console.log(err))
     }, [])
+
+
+    useEffect(() => {
+        localStorage.setItem("football_cart", JSON.stringify(cartItems));
+        console.log("cartItems",cartItems); // test
+        }, [cartItems]);
   
 
   return (
     <>
-      {!isAuthPage && token && <Navbar onLogout={handleLogout} />}
+      {!isAuthPage && token && <Navbar cartCount={Object.keys(cartItems).length} onLogout={handleLogout} />}
 
       <Routes>
         {/* Auth Routes */}
@@ -72,11 +92,17 @@ export default function App() {
         <Route path="/register" element={<Register setToken={setToken} />} />
 
         {/* Protected Routes */}
-        <Route path="/home" element={token ? <Home products={products} onAddToCart={addToCart}/> : <Navigate to="/" />} />
+        <Route path="/home" 
+          element={token ? <Home products={products} 
+          handleCartUpdate={handleCartUpdate} cartItems={cartItems}
+           removeItem={removeItem}/> 
+          : <Navigate to="/" />} />
         <Route path="/about" element={token ? <About /> : <Navigate to="/" />} />
-        <Route path="/favourites" element={token ? <Favourites products={products} /> : <Navigate to="/" />} />
+        <Route path="/favourites" element={token ? <Favourites products={products} onAddToCart={handleCartUpdate} /> : <Navigate to="/" />} />
         <Route path="/product/:id" element={token ? <ProductDetail /> : <Navigate to="/" />} /> 
         <Route path="/checkout" element={token ? <Checkout /> : <Navigate to="/" />} /> 
+        <Route path="/cart" element={token ? <Cart onAddToCart={handleCartUpdate} cartItems={cartItems}
+               handleCartUpdate={handleCartUpdate} removeItem={removeItem}/> : <Navigate to="/" />} /> 
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to={token ? "/home" : "/"} />} />

@@ -1,13 +1,34 @@
 import { useNavigate } from "react-router-dom";
-
-export default function Cart({ cartItems, onChangeQuantity, onRemove }) {
+import QuantityControls from "./QuantityControls";
+export default function Cart({ cartItems, handleCartUpdate, removeItem }) {
   const navigate = useNavigate();
+  const itemsArray = Object.values(cartItems); // Converts values to an array
+  if (itemsArray.length === 0){ 
+    return (
+    <div style={{
+      margin: '20px',
+      padding: '24px',
+      background: '#111',
+      border: '1px solid #333',
+      borderRadius: '8px',
+      color: 'white',
+    }}>
+      <h2 style={{ margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '16px' }}>
+        Your Cart is Empty.
+      </h2>
 
-  if (cartItems.length === 0) return null;
+      
 
-  const total = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+      
+    </div>
+  );
 
+      
+  }
+  const total = itemsArray.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  
   return (
+    
     <div style={{
       margin: '20px',
       padding: '24px',
@@ -20,8 +41,8 @@ export default function Cart({ cartItems, onChangeQuantity, onRemove }) {
         Your Cart
       </h2>
 
-      {cartItems.map((item, index) => (
-        <div key={index} style={{
+      {itemsArray.map((item) => (
+        <div key={item.id} style={{
           display: 'flex',
           alignItems: 'center',
           gap: '12px',
@@ -31,36 +52,30 @@ export default function Cart({ cartItems, onChangeQuantity, onRemove }) {
         }}>
           <span style={{ flex: 1, fontSize: '14px' }}>{item.name}</span>
 
-          {/* Quantity controls */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <button
-              onClick={() => onChangeQuantity(index, -1)}
-              style={qtyBtnStyle}
-            >−</button>
-            <span style={{ minWidth: '20px', textAlign: 'center', fontSize: '14px' }}>{item.quantity}</span>
-            <button
-              onClick={() => onChangeQuantity(index, 1)}
-              style={qtyBtnStyle}
-            >+</button>
-          </div>
-
+          <QuantityControls 
+                    quantity={item.quantity}
+                    onAdd={() => handleCartUpdate(item, 1)}
+                    onRemove={() => handleCartUpdate(item, -1)}
+                  />
           <span style={{ minWidth: '70px', textAlign: 'right', fontSize: '14px' }}>
             ${(item.price * item.quantity).toFixed(2)}
           </span>
 
           <button
-            onClick={() => onRemove(index)}
+            onClick={() => removeItem(item.id)}
             style={{
-              background: 'transparent',
+              backgroundColor: '#ff4d4d',
               border: '1px solid #444',
-              color: '#ff4d4d',
+              color: '#ffffff',
               borderRadius: '4px',
               padding: '4px 10px',
               cursor: 'pointer',
               fontSize: '12px',
+              height:'30px',
+              
             }}
           >
-            Remove
+            <strong>Remove</strong>
           </button>
         </div>
       ))}
@@ -88,16 +103,3 @@ export default function Cart({ cartItems, onChangeQuantity, onRemove }) {
   );
 }
 
-const qtyBtnStyle = {
-  width: '28px',
-  height: '28px',
-  background: '#222',
-  border: '1px solid #444',
-  color: 'white',
-  borderRadius: '4px',
-  cursor: 'pointer',
-  fontSize: '16px',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-};

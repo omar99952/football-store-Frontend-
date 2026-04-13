@@ -1,17 +1,12 @@
 import { useState, useEffect } from "react"
 import Hero from "./Hero"
-import Cart from "./Cart"
 import ProductCard from "./ProductCard"
 import BrandFilters from "./BrandFilters"
 
 
-function Home({products,onAddToCart}) {
-    const [cartItems, setCartItems] = useState([])
+function Home({products,onAddToCart,cartItems,handleCartUpdate}) {
+    
     const [activeBrand, setActiveBrand] = useState('All')
-    const [cart, setCart] = useState(() => {
-    const savedCart = localStorage.getItem("football_cart");
-        return savedCart ? JSON.parse(savedCart) : [];
-            });
     const [favList,setFavList] = useState(() =>{
         const savedData = localStorage.getItem('fav_list')
         return savedData ? JSON.parse(savedData) : []
@@ -33,28 +28,9 @@ function Home({products,onAddToCart}) {
 
         }, [favList]);
         
-    useEffect(() => {
-    localStorage.setItem("football_cart", JSON.stringify(cart));
-  }, [cart]);    
+        
 
     
-
-    
-
-    const changeQuantity = (index, amount) => {
-        const updated = [...cartItems]
-        updated[index].quantity += amount
-        if (updated[index].quantity <= 0) {
-            updated.splice(index, 1)  // remove if quantity reaches 0
-        }
-        setCartItems(updated)
-    }
-
-    const removeItem = (index) => {
-        const updated = [...cartItems]
-        updated.splice(index, 1)
-        setCartItems(updated)
-    }
 
     const filteredProducts = activeBrand === 'All'
         ? products
@@ -66,10 +42,11 @@ function Home({products,onAddToCart}) {
             <BrandFilters activeBrand={activeBrand} setActiveBrand={setActiveBrand} />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', padding: '20px' }}>
                 {filteredProducts.map(product => (
-                    <ProductCard key={product.id} product={product} onAddToCart={onAddToCart} addToFavList={addToFavList} favList={favList}/>
+                    <ProductCard key={product.id} product={product} 
+                                 addToFavList={addToFavList} favList={favList} 
+                                 cartItems={cartItems} handleCartUpdate={handleCartUpdate}/>
                 ))}
             </div>
-            <Cart cartItems={cartItems} onChangeQuantity={changeQuantity} onRemove={removeItem} />
         </div>
     )
 }

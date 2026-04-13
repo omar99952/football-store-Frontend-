@@ -71,7 +71,7 @@ export default function Checkout() {
           <h2 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '14px', color: '#888', marginBottom: '16px' }}>
             Order Summary
           </h2>
-          {cartItems.map((item, i) => (
+          {Object.values(cartItems).map((item, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #222', fontSize: '14px' }}>
               <span>{item.name} × {item.quantity}</span>
               <span>${(item.price * item.quantity).toFixed(2)}</span>
