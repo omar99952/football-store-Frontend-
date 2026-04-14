@@ -34,7 +34,6 @@ export default function App() {
     return;
   }
       
-      
       setCartItems((prev) => {
       const productId = product.id.toString();
       const existingItem = prev[productId];

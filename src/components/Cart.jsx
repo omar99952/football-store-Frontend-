@@ -1,30 +1,13 @@
 import { useNavigate } from "react-router-dom";
 import QuantityControls from "./QuantityControls";
+import EmptyCart from "./EmptyCart";
+
 export default function Cart({ cartItems, handleCartUpdate, removeItem }) {
   const navigate = useNavigate();
   const itemsArray = Object.values(cartItems); // Converts values to an array
-  if (itemsArray.length === 0){ 
-    return (
-    <div style={{
-      margin: '20px',
-      padding: '24px',
-      background: '#111',
-      border: '1px solid #333',
-      borderRadius: '8px',
-      color: 'white',
-    }}>
-      <h2 style={{ margin: '0 0 20px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '16px' }}>
-        Your Cart is Empty.
-      </h2>
-
-      
-
-      
-    </div>
-  );
-
-      
-  }
+  if (itemsArray.length === 0)
+    return <EmptyCart />
+  
   const total = itemsArray.reduce((sum, item) => sum + item.price * item.quantity, 0);
   
   return (

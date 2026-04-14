@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import axios from "axios";
+import  { useState } from "react";
 import { useNavigate } from "react-router-dom"; 
 import '../App.css';
+import AxiosInstance from './AxiosInstance';
 
 export default function Register() { // Removed setToken if you want them to log in manually
   const [username, setUsername] = useState("");
@@ -21,7 +21,7 @@ export default function Register() { // Removed setToken if you want them to log
     }
 
     try {
-      await axios.post("http://127.0.0.1:8000/api/register/", { 
+      await AxiosInstance.post("register/", { 
         username, 
         password 
       });

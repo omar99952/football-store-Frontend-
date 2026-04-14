@@ -10,7 +10,7 @@ export default function Hero() {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         width: '100%',
-        height: '100vh',
+        height: '80vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
