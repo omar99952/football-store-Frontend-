@@ -13,6 +13,7 @@ import AxiosInstance from "./components/AxiosInstance"
 import Cart from "./components/Cart"
 import "./App.css";
 
+
 export default function App() {
   const [products, setProducts] = useState([])
   const [token, setToken] = useState(localStorage.getItem("token") || null);
@@ -22,6 +23,20 @@ export default function App() {
     return savedCart ? JSON.parse(savedCart) : {};
   });
   const isAuthPage = location.pathname === "/" || location.pathname === "/register";
+  const [favList,setFavList] = useState(() =>{
+        const savedData = localStorage.getItem('fav_list')
+        return savedData ? JSON.parse(savedData) : []
+    }
+        )
+      
+    function addToFavList(id){
+        if (!favList.includes(id))
+            setFavList([...favList,id])
+        else 
+            setFavList(favList.filter( item => item!== id))
+
+    }
+
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -68,6 +83,12 @@ export default function App() {
   });
 };
 
+       useEffect(() => {
+        localStorage.setItem('fav_list', JSON.stringify(favList) )
+        console.log("The list has updated and saved:", favList);
+
+        }, [favList]);
+    
       useEffect(() => {
         AxiosInstance.get('products/')
             .then(res => setProducts(res.data))
@@ -92,12 +113,15 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route path="/home" 
-          element={token ? <Home products={products} 
-          handleCartUpdate={handleCartUpdate} cartItems={cartItems}
-           removeItem={removeItem}/> 
+          element={token ? <Home products={products} addToFavList={addToFavList}
+          handleCartUpdate={handleCartUpdate} cartItems={cartItems} favList={favList}
+           /> 
           : <Navigate to="/" />} />
         <Route path="/about" element={token ? <About /> : <Navigate to="/" />} />
-        <Route path="/favourites" element={token ? <Favourites products={products} onAddToCart={handleCartUpdate} /> : <Navigate to="/" />} />
+        <Route path="/favourites" element={token ?
+         <Favourites products={products} onAddToCart={handleCartUpdate}
+         favList={favList}addToFavList={addToFavList}
+          /> : <Navigate to="/" />} />
         <Route path="/product/:id" element={token ? <ProductDetail /> : <Navigate to="/" />} /> 
         <Route path="/checkout" element={token ? <Checkout /> : <Navigate to="/" />} /> 
         <Route path="/cart" element={token ? <Cart onAddToCart={handleCartUpdate} cartItems={cartItems}

@@ -1,4 +1,4 @@
-export default function BrandFilters({ activeBrand, setActiveBrand }) {
+export default function BrandFilters({ fetchProducts,activeBrand, setActiveBrand }) {
   const brands = ['All', 'Nike', 'Adidas', 'Puma', 'New Balance'];
 
   return (
@@ -13,7 +13,9 @@ export default function BrandFilters({ activeBrand, setActiveBrand }) {
         return (
           <button
             key={brand}
-            onClick={() => setActiveBrand(brand)}
+            
+            onClick={() => {setActiveBrand(brand);
+              fetchProducts(brand=='All'?null:brand)}}
             style={{
               padding: '8px 20px',
               background: isActive ? '#fff' : 'transparent',

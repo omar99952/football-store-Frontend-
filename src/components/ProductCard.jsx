@@ -8,13 +8,18 @@ import { IconButton } from '@mui/material'; // Optional: makes it a clickable bu
 import QuantityControls from "./QuantityControls";
 //
 
-export default function ProductCard({ product,addToFavList,favList,fromFav,handleCartUpdate,cartItems }) {
+export default function ProductCard({ product,addToFavList,favList,handleCartUpdate,cartItems,inFavPage }) {
   const navigate = useNavigate();
   const [isAddedToCart,setAddedToCart] = useState(false);
-  const itemInCart = cartItems.hasOwnProperty(product.id.toString());
-  const cartEntry = cartItems[product.id.toString()];
   const isProductFavorite = favList== undefined ? false : favList.includes(product.id);
+ const itemInCart = cartItems ? cartItems.hasOwnProperty(product.id.toString()) : false;
+  const cartEntry =cartItems? cartItems[product.id.toString()]: null;
+  
   console.log(`isadded to cart for ${product.name}:`, itemInCart);
+
+  useEffect(()=>{
+  },[isProductFavorite])
+
   return (
     <motion.div onClick={() => navigate(`/product/${product.id}`)}
       whileHover={{ scale: 1.05 }}
@@ -40,7 +45,7 @@ export default function ProductCard({ product,addToFavList,favList,fromFav,handl
       <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 500 }}>{product.name}</h3>
       <p style={{ margin: 0, fontSize: '14px', color: '#aaa' }}>{product.brand}</p>
       <p style={{ margin: 0, fontSize: '16px', fontWeight: 700 }}>${product.price}</p>
-     { fromFav ? null :
+     { inFavPage ? null :
 
        <FavoriteIcon sx={{ alignSelf: 'flex-end',color: isProductFavorite && 'red' }}
        onClick={(e) => {
@@ -54,7 +59,29 @@ export default function ProductCard({ product,addToFavList,favList,fromFav,handl
         {/* Fixed: was onAddToCart without passing product */}
         
         {console.log("isadded to cart",isAddedToCart)}
-{itemInCart ? (
+{
+inFavPage ? <button 
+            onClick={(e) => {
+                e.stopPropagation(); // Prevent navigating to product detail
+                addToFavList(product.id);
+            }}
+            style={{
+                background: 'transparent',
+                color: '#ff4d4d', // Red color for removal
+                border: '1px solid #ff4d4d',
+                padding: '6px',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontSize: '12px',
+                fontWeight: 'bold',
+                transition: '0.2s'
+            }}
+            onMouseEnter={(e) => e.target.style.background = 'rgba(255, 77, 77, 0.1)'}
+            onMouseLeave={(e) => e.target.style.background = 'transparent'}
+        >
+            DELETE
+        </button>:
+itemInCart ? (
       <QuantityControls 
         quantity={cartEntry.quantity} 
         onAdd={() => handleCartUpdate(product, 1)} 
@@ -80,6 +107,7 @@ export default function ProductCard({ product,addToFavList,favList,fromFav,handl
         >
           Add to Cart
         </button>}
+
         <button
           onClick={() => navigate(`/product/${product.id}`)}
           style={{
