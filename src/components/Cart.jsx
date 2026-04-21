@@ -9,7 +9,6 @@ export default function Cart({ cartItems, handleCartUpdate, removeItem }) {
     return <EmptyCart />
   
   const total = itemsArray.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  
   return (
     
     <div style={{
@@ -34,11 +33,13 @@ export default function Cart({ cartItems, handleCartUpdate, removeItem }) {
           borderBottom: '1px solid #222',
         }}>
           <span style={{ flex: 1, fontSize: '14px' }}>{item.name}</span>
-
+          
+          {console.log("Item in cart:", item)}
           <QuantityControls 
                     quantity={item.quantity}
                     onAdd={() => handleCartUpdate(item, 1)}
                     onRemove={() => handleCartUpdate(item, -1)}
+                    isMax={item.quantity >= item.stock}
                   />
           <span style={{ minWidth: '70px', textAlign: 'right', fontSize: '14px' }}>
             ${(item.price * item.quantity).toFixed(2)}

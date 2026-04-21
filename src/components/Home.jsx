@@ -4,14 +4,9 @@ import ProductCard from "./ProductCard"
 import BrandFilters from "./BrandFilters"
 import AxiosInstance from "./AxiosInstance"
 
-function Home({products,onAddToCart,cartItems,handleCartUpdate ,addToFavList,favList}) {
+function Home({cartItems,handleCartUpdate ,addToFavList,favList}) {
     const[filteredProducts ,setFilteredProducts] = useState([])
     const [activeBrand, setActiveBrand] = useState('All')
-    
-   
-
-   
-        
     const fetchProducts = async (brandName = "") => {
     const response = await AxiosInstance.get('/products/', {
         params: { brand: brandName } 

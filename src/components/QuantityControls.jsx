@@ -1,4 +1,4 @@
-function QuantityControls({quantity,onAdd, onRemove}){
+function QuantityControls({quantity,onAdd, onRemove,isMax}){
     const qtyBtnStyle = {
     width: '28px',
     height: '28px',
@@ -12,11 +12,17 @@ function QuantityControls({quantity,onAdd, onRemove}){
     alignItems: 'center',
     justifyContent: 'center',
     };
+
+
+  
+
     return(
+      
             
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             {console.log("hello from quantiity")}
             
+
             <button
               onClick={(e) => {
                 e.stopPropagation()
@@ -27,6 +33,8 @@ function QuantityControls({quantity,onAdd, onRemove}){
             <button
               onClick={(e) => {e.stopPropagation()
                onAdd();}}
+              //  disabled={isMax}
+               title={isMax ? "No more stock available" : ""}
               style={qtyBtnStyle}
             >+</button>
           </div>

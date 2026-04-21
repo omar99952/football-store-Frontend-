@@ -15,6 +15,7 @@ import "./App.css";
 
 
 export default function App() {
+  const [alertInfo, setAlertInfo] = useState({ show: false, name: '', limit: 0 });
   const [products, setProducts] = useState([])
   const [token, setToken] = useState(localStorage.getItem("token") || null);
   const location = useLocation();
@@ -45,9 +46,26 @@ export default function App() {
 
     const handleCartUpdate = (product, delta) => {
       if (!product || product.id === undefined) {
-    console.error("Error: Product ID is missing!", product);
+      console.error("Error: Product ID is missing!", product);
     return;
   }
+
+  const currentQty = cartItems[product.id]?.quantity || 0;
+  const newQty = delta + currentQty;
+  console.log("Checking Stock:", { name: product.name, currentQty, delta, stock: product.stock });
+    if(delta > 0 && newQty > product.stock ){
+      // alert(`Only ${product.stock} items available in stock!`);
+      console.log("Triggering Alert for:", product.name);
+      setAlertInfo({ 
+      show: true, 
+      name: product.name, 
+      limit: product.stock 
+    });
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => setAlertInfo(prev => ({ ...prev, show: false })), 3000);
+    return;
+    }
       
       setCartItems((prev) => {
       const productId = product.id.toString();
@@ -113,23 +131,89 @@ export default function App() {
 
         {/* Protected Routes */}
         <Route path="/home" 
-          element={token ? <Home products={products} addToFavList={addToFavList}
-          handleCartUpdate={handleCartUpdate} cartItems={cartItems} favList={favList}
+          element={token ? <Home  addToFavList={addToFavList}
+          handleCartUpdate={handleCartUpdate}
+          cartItems={cartItems} favList={favList}
            /> 
           : <Navigate to="/" />} />
+
         <Route path="/about" element={token ? <About /> : <Navigate to="/" />} />
+        
         <Route path="/favourites" element={token ?
          <Favourites products={products} onAddToCart={handleCartUpdate}
          favList={favList}addToFavList={addToFavList}
           /> : <Navigate to="/" />} />
-        <Route path="/product/:id" element={token ? <ProductDetail /> : <Navigate to="/" />} /> 
-        <Route path="/checkout" element={token ? <Checkout /> : <Navigate to="/" />} /> 
-        <Route path="/cart" element={token ? <Cart onAddToCart={handleCartUpdate} cartItems={cartItems}
+        
+        <Route path="/product/:id" element={token ? <ProductDetail 
+          products={products} addToFavList={addToFavList}
+          handleCartUpdate={handleCartUpdate} cartItems={cartItems} 
+          favList={favList}/> : <Navigate to="/" />} /> 
+        
+        <Route path="/checkout" element={token ? <Checkout cartItems={cartItems} setCartItems={setCartItems}/> : <Navigate to="/" />} /> 
+        
+        <Route path="/cart" element={token ? <Cart  cartItems={cartItems}
                handleCartUpdate={handleCartUpdate} removeItem={removeItem}/> : <Navigate to="/" />} /> 
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to={token ? "/home" : "/"} />} />
       </Routes>
+      <StockAlert 
+      show={alertInfo.show} 
+      onClose={() => setAlertInfo(prev => ({ ...prev, show: false }))} 
+      productName={alertInfo.name} 
+      limit={alertInfo.limit} 
+    />
     </>
   );
 }
+
+import { motion, AnimatePresence } from "framer-motion";
+
+const StockAlert = ({ show, onClose, productName, limit }) => {
+  return (
+    <AnimatePresence>
+      {show && (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.9 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          style={{
+            position: 'fixed',
+            bottom: '40px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 9999,
+            background: 'rgba(255, 77, 77, 0.95)', // Red transparent background
+            backdropFilter: 'blur(8px)',
+            color: 'white',
+            padding: '12px 24px',
+            borderRadius: '12px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '15px',
+            border: '1px solid rgba(255,255,255,0.2)'
+          }}
+        >
+          <span style={{ fontWeight: 'bold' }}>
+            ⚠️ Only {limit} {limit === 1 ? 'unit' : 'units'} of {productName} left!
+          </span>
+          <button 
+            onClick={onClose}
+            style={{
+              background: 'white',
+              border: 'none',
+              borderRadius: '4px',
+              padding: '4px 8px',
+              cursor: 'pointer',
+              fontWeight: 'bold',
+              fontSize: '10px'
+            }}
+          >
+            DISMISS
+          </button>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};

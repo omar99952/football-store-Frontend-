@@ -1,13 +1,14 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import AxiosInstance from "./AxiosInstance";
 
-export default function Checkout() {
+export default function Checkout({cartItems,setCartItems}) {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const cartItems = state?.cartItems || [];
+  // const cartItems = state?.cartItems || [];
   const total = state?.total || 0;
-
+  const [loading,setLoading] = useState(false)
   const [form, setForm] = useState({ name: '', email: '', address: '', card: '' });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -20,7 +21,30 @@ export default function Checkout() {
     if (form.card.length < 16) e.card = 'Enter a valid 16-digit card number';
     return e;
   };
+  const handleCheckout = async () => {
+    setLoading(true);
+    try{
+      const orderData = {
+        items: cartItems,
+        total_price: total
+      }
 
+      const response = await AxiosInstance.post('create_order/',orderData)
+      if (response.status === 201){
+        console.log("order successfull",response.data.order_id);
+        setCartItems({})
+        // remove cart from localStorage
+        localStorage.removeItem('football_cart')
+        navigate('/order-success')
+      }
+    } catch (error) {
+      // If Django raised an Exception (e.g., "Not enough stock")
+      console.error("Checkout failed:", error.response?.data?.error);
+      alert(error.response?.data?.error || "Something went wrong with your order.");
+    } finally {
+      setLoading(false);
+    }
+  }
   const handleSubmit = (e) => {
     e.preventDefault();
     const errs = validate();
@@ -107,7 +131,9 @@ export default function Checkout() {
                 {errors[key] && <p style={{ color: '#ff4d4d', fontSize: '12px', margin: '4px 0 0' }}>{errors[key]}</p>}
               </div>
             ))}
-            <button type="submit" style={{ ...primaryBtn, marginTop: '8px' }}>
+            <button type="submit" onClick={handleCheckout} 
+            disabled={loading || Object.keys(cartItems).length === 0}
+            style={{ ...primaryBtn, marginTop: '8px' }}>
               Place Order — ${total.toFixed(2)}
             </button>
           </form>
