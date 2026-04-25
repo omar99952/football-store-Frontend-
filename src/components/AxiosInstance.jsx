@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const baseURL = "http://127.0.0.1:8000/api/"//'http://192.168.0.3:8000/api/'
+ export const baseURL = "http://127.0.0.1:8000/api/"//'http://192.168.0.3:8000/api/'
 //;
 
 const AxiosInstance = axios.create({
@@ -13,12 +13,15 @@ const AxiosInstance = axios.create({
 });
 
 AxiosInstance.interceptors.request.use((config) => {
-    const token = localStorage.getItem("token")
+    const token = localStorage.getItem("access_token")
     if (token) {
-        config.headers.Authorization = `Token ${token}`
+        config.headers.Authorization = `Bearer ${token}`
     }
     return config
-})
+},(error) => {
+        return Promise.reject(error);
+    }
+)
 
 
 export default AxiosInstance;

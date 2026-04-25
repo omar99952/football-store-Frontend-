@@ -14,35 +14,42 @@ export default function Login({ setToken }) {
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    console.log("1. Starting Login Process...");
     try {
-      const res = await AxiosInstance.post("login/", { username, password });
-      localStorage.setItem("token", res.data.token);
-      setToken(res.data.token);
+      const res = await AxiosInstance.post("token/", { username, password });
+      console.log("after post token/");
+      
+      localStorage.setItem('access_token', res.data.access);
+      localStorage.setItem('refresh_token', res.data.refresh);
+      // setToken(response.data.access);
+      console.log("Access Token Saved:", res.data.access);
+      console.log("6. Final Step: Attempting navigation to /home");
+      setToken(res.data.access); 
       navigate("/home");
+      console.log("7. Navigation command sent!");
     } catch (err) {
       setError("Login failed — check your credentials.");
     }
   };
 
  const handleSuccess = async (credentialResponse) => {
-    // This 'credential' is the long JWT (ID Token) Django is looking for
-    const idToken = credentialResponse.credential; 
-    console.log("ID Token:", idToken); 
-
     try {
-      const res = await axios.post("http://127.0.0.1:8000/api/google-login/", {
-        token: idToken,
-      });
+        const res = await AxiosInstance.post('google-login/', {
+            token: credentialResponse.credential,
+        });
 
-      // Save your Django token and redirect
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("username", res.data.username);
-      window.location.href = "/profile"; 
+        // Store identity first
+        localStorage.setItem("access_token", res.data.access);
+        localStorage.setItem("username", res.data.username); // Needed for isolated storage keys
+
+        // Trigger App.js re-render
+        setToken(res.data.access); 
+        
+        navigate("/home"); 
     } catch (error) {
-      console.error("Backend login failed", error);
+        console.error("Google sync failed", error);
     }
-  };
-
+};
 
   const dividerStyle = {
     display: 'flex',
