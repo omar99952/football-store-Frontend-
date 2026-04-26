@@ -23,7 +23,8 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import FavoriteIcon from '@mui/icons-material/Favorite'; // 
 import Badge from '@mui/material/Badge';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-
+import InventoryIcon from '@mui/icons-material/Inventory';
+import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 const drawerWidth = 240;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
@@ -158,6 +159,15 @@ export default function Navbar({ onLogout, content,cartCount }) {
             <ListItemButton component={Link} to="/favourites" selected={path === "/favourites"}>
               <ListItemIcon sx={{ color: 'white' }}><FavoriteIcon /></ListItemIcon>
               <ListItemText primary="Favourites" />
+            </ListItemButton>
+          </ListItem>
+
+          <ListItem key="orders" disablePadding>
+            <ListItemButton component={Link} to="get_orders/" selected={path === "get_orders/"}>
+              <ListItemIcon sx={{ color: 'white' }}>
+                {/*<InventoryIcon />*/ }  <ShoppingBagIcon /> 
+              </ListItemIcon>
+              <ListItemText primary="My Orders" />
             </ListItemButton>
           </ListItem>
 

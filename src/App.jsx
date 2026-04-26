@@ -14,7 +14,7 @@ import Cart from "./components/Cart"
 import "./App.css";
 import { debounce } from 'lodash';
 import { useCallback, useMemo } from 'react';
-
+import OrderPage from './components/OrderPage'
 export default function App() {
   const [alertInfo, setAlertInfo] = useState({ show: false, name: '', limit: 0 });
   const [products, setProducts] = useState([])
@@ -225,6 +225,11 @@ useEffect(() => {
          <Favourites products={products} onAddToCart={handleCartUpdate}
          favList={favList}addToFavList={addToFavList}
           /> : <Navigate to="/" />} />
+
+          <Route 
+        path="get_orders/" 
+        element={token ? <OrderPage /> : <Navigate to="/" />} 
+        />
         
         <Route path="/product/:id" element={token ? <ProductDetail 
           products={products} addToFavList={addToFavList}
