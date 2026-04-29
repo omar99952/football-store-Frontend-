@@ -19,12 +19,15 @@ import ListItemText from '@mui/material/ListItemText';
 import HomeIcon from '@mui/icons-material/Home';
 import InfoIcon from '@mui/icons-material/Info';
 import LogoutIcon from '@mui/icons-material/Logout';
+import LoginIcon from '@mui/icons-material/Login';
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import FavoriteIcon from '@mui/icons-material/Favorite'; // 
 import Badge from '@mui/material/Badge';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
+import Button from '@mui/material/Button';
+
 const drawerWidth = 240;
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' })(
@@ -87,7 +90,7 @@ export default function Navbar({ onLogout, content,cartCount }) {
   const path = location.pathname;
   const theme = useTheme();
   const [open, setOpen] = React.useState(false);
-
+  const token = localStorage.getItem('access_token');
   const handleDrawerOpen = () => setOpen(true);
   const handleDrawerClose = () => setOpen(false);
 
@@ -115,6 +118,17 @@ export default function Navbar({ onLogout, content,cartCount }) {
           <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
             Football Store
           </Typography>
+          {!token && 
+        <Button 
+          variant="contained" 
+          color="primary" 
+          startIcon={<LoginIcon />}
+          component={Link} 
+          to="/login"
+          sx={{ textTransform: 'none', borderRadius: '20px' }}
+        >
+          Login
+        </Button>}
           <IconButton color="inherit" onClick={() => navigate('/cart')}>
             <Badge badgeContent={cartCount} color="error">
                 <ShoppingCartIcon />
@@ -161,16 +175,17 @@ export default function Navbar({ onLogout, content,cartCount }) {
               <ListItemText primary="Favourites" />
             </ListItemButton>
           </ListItem>
-
+{token &&
+      <>
           <ListItem key="orders" disablePadding>
             <ListItemButton component={Link} to="get_orders/" selected={path === "get_orders/"}>
               <ListItemIcon sx={{ color: 'white' }}>
-                {/*<InventoryIcon />*/ }  <ShoppingBagIcon /> 
+                 <ShoppingBagIcon /> 
               </ListItemIcon>
               <ListItemText primary="My Orders" />
             </ListItemButton>
           </ListItem>
-
+      </> }
           <ListItem key="about" disablePadding>
             <ListItemButton component={Link} to="/about" selected={path === "/about"}>
               <ListItemIcon sx={{ color: 'white' }}><InfoIcon /></ListItemIcon>
@@ -180,16 +195,18 @@ export default function Navbar({ onLogout, content,cartCount }) {
         </List>
 
         <Divider />
-
-        {/* Logout button pushed to bottom */}
-        <List style={{ marginTop: 'auto' ,}}>
-          <ListItem key="logout" disablePadding>
-            <ListItemButton onClick={handleLogout}>
-              <ListItemIcon sx={{ color: 'white' }}><LogoutIcon /></ListItemIcon>
-              <ListItemText primary="Logout" />
-            </ListItemButton>
-          </ListItem>
-        </List>
+{token && 
+        <>
+          {/* Logout button pushed to bottom */}
+          <List style={{ marginTop: 'auto' ,}}>
+            <ListItem key="logout" disablePadding>
+              <ListItemButton onClick={handleLogout}>
+                <ListItemIcon sx={{ color: 'white' }}><LogoutIcon /></ListItemIcon>
+                <ListItemText primary="Logout" />
+              </ListItemButton>
+            </ListItem>
+          </List>
+        </>}    
       </Drawer>
 
       <Main open={open}>

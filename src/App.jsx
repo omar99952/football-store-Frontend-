@@ -24,7 +24,7 @@ export default function App() {
   const savedCart = localStorage.getItem("football_cart");
     return savedCart ? JSON.parse(savedCart) : {};
   });*/
-  const isAuthPage = location.pathname === "/" || location.pathname === "/register";
+  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
   const [favList,setFavList] = useState(() =>{
         const savedData = localStorage.getItem('fav_list')
         return savedData ? JSON.parse(savedData) : []
@@ -83,11 +83,12 @@ export default function App() {
     return;
   }
 
+  const token = localStorage.getItem('access_token');
   const productId = product.id.toString();
   const currentQty = cartItems[productId]?.quantity || 0;
   const newQty = currentQty + delta;
 
-  // 1. Stock Validation logic
+  // 1. Stock Validation (Shared logic)
   if (delta > 0 && newQty > product.stock) {
     setAlertInfo({ 
       show: true, 
@@ -98,27 +99,36 @@ export default function App() {
     return;
   }
 
-  // 2. Local State Update (Optimistic UI)
+  // 2. Local State Update (Optimistic UI - Shared logic)
+  let updatedCart;
   setCartItems((prev) => {
-    // If removing the last item
     if (delta === -1 && currentQty === 1) {
       const { [productId]: removed, ...rest } = prev;
+      updatedCart = rest;
       return rest;
     }
-
-    // Update or add new
-    return {
+    updatedCart = {
       ...prev,
-      [productId]: {
-        ...product,
-        quantity: newQty,
-      },
+      [productId]: { ...product, quantity: newQty },
     };
+    return updatedCart;
   });
 
-  // 3. Backend Sync
-  // If newQty is 0, we trigger the deletion path
-  postTheCart(productId, newQty, newQty === 0);
+  // 3. Conditional Backend vs. LocalStorage Sync
+  if (!token) {
+    // GUEST LOGIC: Save the whole cart object to localStorage
+    // We convert the object to a list for the backend merge logic later
+    const guestCartArray = Object.values(updatedCart).map(item => ({
+      id: item.id,
+      quantity: item.quantity
+    }));
+    
+    localStorage.setItem('guestCart', JSON.stringify(guestCartArray));
+    console.log("Guest cart saved locally:", guestCartArray);
+  } else {
+    // USER LOGIC: Existing database sync
+    postTheCart(productId, newQty, newQty === 0);
+  }
 };
 
 const removeItem = (productId) => {
@@ -204,42 +214,45 @@ useEffect(() => {
 
   return (
     <>
-      {!isAuthPage && token && <Navbar cartCount={Object.keys(cartItems).length} onLogout={handleLogout} />}
+      {!isAuthPage &&  <Navbar cartCount={Object.keys(cartItems).length} onLogout={handleLogout} />}
 
       <Routes>
         {/* Auth Routes */}
-        <Route path="/" element={<Login setToken={setToken} />} />
+        <Route path="/login" element={<Login setToken={setToken} />} />
         <Route path="/register" element={<Register setToken={setToken} />} />
 
-        {/* Protected Routes */}
+        {/* Public Routes */}
+        <Route path="/" element={<Navigate to="/home" replace />} />
         <Route path="/home" 
-          element={token ? <Home  addToFavList={addToFavList}
+          element={ <Home  addToFavList={addToFavList}
           handleCartUpdate={handleCartUpdate}
           cartItems={cartItems} favList={favList}
            /> 
-          : <Navigate to="/" />} />
+          } />
 
-        <Route path="/about" element={token ? <About /> : <Navigate to="/" />} />
+        <Route path="/about" element={ <About />} />
         
-        <Route path="/favourites" element={token ?
+        <Route path="/favourites" element={
          <Favourites products={products} onAddToCart={handleCartUpdate}
          favList={favList}addToFavList={addToFavList}
-          /> : <Navigate to="/" />} />
+          /> } />
 
-          <Route 
-        path="get_orders/" 
-        element={token ? <OrderPage /> : <Navigate to="/" />} 
-        />
-        
-        <Route path="/product/:id" element={token ? <ProductDetail 
+        <Route path="/product/:id" element={ <ProductDetail 
           products={products} addToFavList={addToFavList}
           handleCartUpdate={handleCartUpdate} cartItems={cartItems} 
-          favList={favList}/> : <Navigate to="/" />} /> 
+          favList={favList}/> } />
+
+          {/* protected Routes */} 
+          <Route 
+        path="get_orders/" 
+        element={token ? <OrderPage /> : <Navigate to="/login" />} 
+        />
         
-        <Route path="/checkout" element={token ? <Checkout cartItems={cartItems} setCartItems={setCartItems}/> : <Navigate to="/" />} /> 
+        
+        <Route path="/checkout" element={token ? <Checkout cartItems={cartItems} setCartItems={setCartItems}/> : <Navigate to="/login" />} /> 
         
         <Route path="/cart" element={token ? <Cart  cartItems={cartItems}
-               handleCartUpdate={handleCartUpdate} removeItem={removeItem}/> : <Navigate to="/" />} /> 
+               handleCartUpdate={handleCartUpdate} removeItem={removeItem}/> : <Navigate to="/login" />} /> 
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to={token ? "/home" : "/"} />} />

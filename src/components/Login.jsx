@@ -11,7 +11,7 @@ export default function Login({ setToken }) {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
+  const handleLogin = async (e,token) => {
     e.preventDefault();
     setError("");
     console.log("1. Starting Login Process...");
@@ -21,7 +21,19 @@ export default function Login({ setToken }) {
       
       localStorage.setItem('access_token', res.data.access);
       localStorage.setItem('refresh_token', res.data.refresh);
-      // setToken(response.data.access);
+
+      const guestCart = JSON.parse(localStorage.getItem('guestCart')) || [];
+      if (guestCart.length > 0) {
+        try {
+            // 2. Send to your merge endpoint
+            await AxiosInstance.post('cart/', { items: guestCart });
+            
+            // 3. Clear guest storage after successful merge
+            localStorage.removeItem('guestCart');
+        } catch (err) {
+            console.error("Cart sync failed", err);
+        }
+    }
       console.log("Access Token Saved:", res.data.access);
       console.log("6. Final Step: Attempting navigation to /home");
       setToken(res.data.access); 
