@@ -1,17 +1,37 @@
 import { useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import AxiosInstance from "./AxiosInstance";
-
-export default function Checkout({cartItems,setCartItems}) {
+import axios from 'axios'
+export default function Checkout({ cartItems, setCartItems }) {
   const { state } = useLocation();
   const navigate = useNavigate();
-  // const cartItems = state?.cartItems || [];
   const total = state?.total || 0;
-  const [loading,setLoading] = useState(false)
+  
+  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ name: '', email: '', address: '', card: '' });
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+
+  // --- 1. Handle PayPal Redirect Success ---
+  useEffect(() => {
+    const queryParams = new URLSearchParams(window.location.search);
+    const paymentId = queryParams.get('paymentId');
+    const PayerID = queryParams.get('PayerID');
+
+    if (paymentId && PayerID) {
+      setLoading(true);
+      // Finalize the payment on your FastAPI backend
+      AxiosInstance.get(`https://paypal-backend.vercel.app/execute-payment/?paymentId=${paymentId}&PayerID=${PayerID}`)
+        .then(res => {
+          setCartItems({});
+          localStorage.removeItem('football_cart');
+          setSubmitted(true); // Show the success animation
+        })
+        .catch(err => alert("Payment execution failed."))
+        .finally(() => setLoading(false));
+    }
+  }, [setCartItems]);
 
   const validate = () => {
     const e = {};
@@ -21,43 +41,63 @@ export default function Checkout({cartItems,setCartItems}) {
     if (form.card.length < 16) e.card = 'Enter a valid 16-digit card number';
     return e;
   };
-  const handleCheckout = async () => {
-    setLoading(true);
-    try{
-      const orderData = {
-        items: cartItems,
-        total_price: total
-      }
 
-      const response = await AxiosInstance.post('create_order/',orderData)
-      if (response.status === 201){
-        console.log("order successfull",response.data.order_id);
-        setCartItems({})
-        // remove cart from localStorage
-        localStorage.removeItem('football_cart')
-        navigate('/order-success')
-      }
+  // --- 2. PayPal Integration ---
+const handlePayPalCheckout = async () => {
+    try {
+        // Calculate the total sum of all items in the cart
+        const total = Object.values(cartItems).reduce((sum, item) => {
+            return sum + (parseFloat(item.price) * (item.quantity || 1));
+        }, 0);
+
+        const response = await axios.post(
+            'https://paypal-backend.vercel.app/create-order',
+            { 
+                "total_price": total.toFixed(2), // Matches your FastAPI key
+                "currency": "USD" 
+            }
+        );
+
+        if (response.data.approval_url) {
+            window.location.href = response.data.approval_url;
+        }
     } catch (error) {
-      // If Django raised an Exception (e.g., "Not enough stock")
-      console.error("Checkout failed:", error.response?.data?.error);
-      alert(error.response?.data?.error || "Something went wrong with your order.");
-    } finally {
-      setLoading(false);
+        console.error("PayPal Error:", error.response?.data || error.message);
+        alert("Checkout failed: " + (error.response?.data?.detail || "Server error"));
     }
-  }
-  const handleSubmit = (e) => {
+};
+  // --- 3. Standard Django Checkout ---
+  const handleCheckout = async (e) => {
     e.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length > 0) {
       setErrors(errs);
       return;
     }
-    setSubmitted(true);
+
+    setLoading(true);
+    try {
+      const orderData = {
+        items: Object.values(cartItems),
+        total_price: total
+      };
+      
+      const response = await AxiosInstance.post('create_order/', orderData);
+      if (response.status === 201) {
+        setCartItems({});
+        localStorage.removeItem('football_cart');
+        setSubmitted(true);
+      }
+    } catch (error) {
+      alert(error.response?.data?.error || "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (cartItems.length === 0 && !submitted) {
+  if (Object.keys(cartItems).length === 0 && !submitted) {
     return (
-      <div style={{ background: '#000', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+      <div style={emptyContainer}>
         <p>Your cart is empty.</p>
         <button onClick={() => navigate('/home')} style={primaryBtn}>Back to Shop</button>
       </div>
@@ -66,19 +106,12 @@ export default function Checkout({cartItems,setCartItems}) {
 
   if (submitted) {
     return (
-      <div style={{ background: '#000', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
-        <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.4 }}
-          style={{ textAlign: 'center' }}
-        >
+      <div style={emptyContainer}>
+        <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '48px', marginBottom: '16px' }}>✓</div>
-          <h2 style={{ margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '2px' }}>Order Confirmed!</h2>
-          <p style={{ color: '#aaa' }}>Thank you, {form.name}. Your boots are on their way.</p>
-          <button onClick={() => navigate('/home')} style={{ ...primaryBtn, marginTop: '24px' }}>
-            Continue Shopping
-          </button>
+          <h2 style={headerStyle}>Order Confirmed!</h2>
+          <p style={{ color: '#aaa' }}>Your boots are on their way.</p>
+          <button onClick={() => navigate('/home')} style={{ ...primaryBtn, marginTop: '24px' }}>Continue Shopping</button>
         </motion.div>
       </div>
     );
@@ -92,16 +125,14 @@ export default function Checkout({cartItems,setCartItems}) {
         
         {/* Order Summary */}
         <div style={{ flex: '1', minWidth: '240px' }}>
-          <h2 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '14px', color: '#888', marginBottom: '16px' }}>
-            Order Summary
-          </h2>
+          <h2 style={labelStyle}>Order Summary</h2>
           {Object.values(cartItems).map((item, i) => (
-            <div key={i} style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #222', fontSize: '14px' }}>
+            <div key={i} style={summaryRow}>
               <span>{item.name} × {item.quantity}</span>
               <span>${(item.price * item.quantity).toFixed(2)}</span>
             </div>
           ))}
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '16px', fontWeight: 'bold', fontSize: '16px' }}>
+          <div style={totalRow}>
             <span>Total</span>
             <span>${total.toFixed(2)}</span>
           </div>
@@ -109,73 +140,63 @@ export default function Checkout({cartItems,setCartItems}) {
 
         {/* Payment Form */}
         <div style={{ flex: '1', minWidth: '260px' }}>
-          <h2 style={{ textTransform: 'uppercase', letterSpacing: '2px', fontSize: '14px', color: '#888', marginBottom: '16px' }}>
-            Payment Details
-          </h2>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {[
-              { key: 'name', placeholder: 'Full Name', type: 'text' },
-              { key: 'email', placeholder: 'Email Address', type: 'email' },
-              { key: 'address', placeholder: 'Shipping Address', type: 'text' },
-              { key: 'card', placeholder: 'Card Number (16 digits)', type: 'text', maxLength: 16 },
-            ].map(({ key, placeholder, type, maxLength }) => (
+          <h2 style={labelStyle}>Payment Details</h2>
+          
+          {/* PayPal Button - Primary Choice */}
+          <button 
+            onClick={handlePayPalCheckout} 
+            disabled={loading}
+            style={paypalBtn}
+          >
+            {loading ? "Processing..." : "Pay with PayPal"}
+          </button>
+
+          <div style={divider}>OR USE CARD</div>
+
+          <form onSubmit={handleCheckout} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            {['name', 'email', 'address', 'card'].map((key) => (
               <div key={key}>
                 <input
-                  type={type}
-                  placeholder={placeholder}
-                  maxLength={maxLength}
+                  type={key === 'email' ? 'email' : 'text'}
+                  placeholder={key.charAt(0).toUpperCase() + key.slice(1)}
                   value={form[key]}
                   onChange={(e) => setForm({ ...form, [key]: e.target.value })}
                   style={inputStyle}
                 />
-                {errors[key] && <p style={{ color: '#ff4d4d', fontSize: '12px', margin: '4px 0 0' }}>{errors[key]}</p>}
+                {errors[key] && <p style={errorText}>{errors[key]}</p>}
               </div>
             ))}
-            <button type="submit" onClick={handleCheckout} 
-            disabled={loading || Object.keys(cartItems).length === 0}
-            style={{ ...primaryBtn, marginTop: '8px' }}>
-              Place Order — ${total.toFixed(2)}
+            <button type="submit" disabled={loading} style={primaryBtn}>
+              {loading ? "Placing Order..." : `Place Order — $${total.toFixed(2)}`}
             </button>
           </form>
         </div>
-
       </div>
     </div>
   );
 }
 
-const primaryBtn = {
-  padding: '12px 24px',
-  background: '#fff',
-  color: '#000',
+// --- Styles ---
+const headerStyle = { margin: '0 0 8px', textTransform: 'uppercase', letterSpacing: '2px' };
+const labelStyle = { textTransform: 'uppercase', letterSpacing: '2px', fontSize: '14px', color: '#888', marginBottom: '16px' };
+const summaryRow = { display: 'flex', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #222', fontSize: '14px' };
+const totalRow = { display: 'flex', justifyContent: 'space-between', marginTop: '16px', fontWeight: 'bold', fontSize: '16px' };
+const errorText = { color: '#ff4d4d', fontSize: '12px', margin: '4px 0 0' };
+const divider = { textAlign: 'center', fontSize: '10px', color: '#444', margin: '20px 0' };
+const emptyContainer = { background: '#000', minHeight: '100vh', color: 'white', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' };
+
+const paypalBtn = {
+  width: '100%',
+  padding: '12px',
+  background: '#ffc439', // PayPal Yellow
+  color: '#003087',      // PayPal Blue
   border: 'none',
   borderRadius: '4px',
   fontWeight: 'bold',
   cursor: 'pointer',
-  textTransform: 'uppercase',
-  letterSpacing: '1px',
-  fontSize: '13px',
+  marginBottom: '10px'
 };
 
-const backBtn = {
-  background: 'transparent',
-  border: '1px solid #444',
-  color: '#fff',
-  borderRadius: '4px',
-  padding: '8px 16px',
-  cursor: 'pointer',
-  marginBottom: '32px',
-  fontSize: '13px',
-};
-
-const inputStyle = {
-  width: '100%',
-  padding: '12px',
-  background: '#111',
-  border: '1px solid #333',
-  color: 'white',
-  borderRadius: '4px',
-  outline: 'none',
-  fontSize: '14px',
-  boxSizing: 'border-box',
-};
+const primaryBtn = { padding: '12px 24px', background: '#fff', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '1px', fontSize: '13px' };
+const backBtn = { background: 'transparent', border: '1px solid #444', color: '#fff', borderRadius: '4px', padding: '8px 16px', cursor: 'pointer', marginBottom: '32px', fontSize: '13px' };
+const inputStyle = { width: '100%', padding: '12px', background: '#111', border: '1px solid #333', color: 'white', borderRadius: '4px', outline: 'none', fontSize: '14px', boxSizing: 'border-box' };

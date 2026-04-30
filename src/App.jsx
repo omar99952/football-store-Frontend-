@@ -9,6 +9,7 @@ import Navbar from "./components/Navbar";
 import ProductDetail from "./components/Productdetail";
 import Checkout from "./components/Checkout";
 import Favourites from "./components/Favourites";
+import PaymentSuccess from "./components/PaymentSuccess";
 import AxiosInstance from "./components/AxiosInstance"
 import Cart from "./components/Cart"
 import "./App.css";
@@ -250,12 +251,12 @@ useEffect(() => {
         
         
         <Route path="/checkout" element={token ? <Checkout cartItems={cartItems} setCartItems={setCartItems}/> : <Navigate to="/login" />} /> 
-        
+        <Route path="/payment-success" element={token ? <PaymentSuccess cartItems={cartItems} /> : <Navigate to="/login" />} />
         <Route path="/cart" element={token ? <Cart  cartItems={cartItems}
                handleCartUpdate={handleCartUpdate} removeItem={removeItem}/> : <Navigate to="/login" />} /> 
 
         {/* Fallback */}
-        <Route path="*" element={<Navigate to={token ? "/home" : "/"} />} />
+        <Route path="*" element={<Navigate to={!token ? "/home" : "/"} />} />
       </Routes>
       <StockAlert 
       show={alertInfo.show} 
